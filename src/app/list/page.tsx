@@ -1,8 +1,14 @@
 import Filter from "@/components/Filter"
 import ProductList from "@/components/ProductList"
+import { wixClientServer } from "@/lib/wixClientServer"
 import Image from "next/image"
+import { Suspense } from "react"
 
-const ListPage = () => {
+const ListPage = async ({ searchParams } : { searchParams: any }) => {
+    
+    const wixClient = await wixClientServer();
+    const res = await wixClient.collections.getCollectionBySlug(searchParams.cat || "all-products");
+
     return <div className="px-4 md:px-8 lg:px-16 xl:px-32 2xl:px-64">
         <div className="bg-pink-50 hidden sm:flex px-4 justify-between h-64">
             <div className="w-2/3 flex flex-col items-center justify-center gap-8">
@@ -17,7 +23,12 @@ const ListPage = () => {
         <Filter />
 
         <h1 className="mt-12 text-xl font-semibold">Shoes For You!</h1>
-        <ProductList />
+    
+        <Suspense fallback="Loading">
+            {/* @ts-expect-error Server Component */}
+            <ProductList categoryId={res.collection?._id || "00000000-000000-000000-000000000001"} searchParams={searchParams}  />
+        </Suspense>
+    
     </div>
 }
 
